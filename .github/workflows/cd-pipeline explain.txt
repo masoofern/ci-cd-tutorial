@@ -1,0 +1,32 @@
+Explanation of the CD pipeline:
+Workflow Triggers (on)
+push: Workflow triggers on pushes to the staging branch.
+
+workflow_dispatch: Enables manual execution of the workflow via the GitHub Actions interface.
+
+release: Triggers when a new release is published.
+Example: When a release is published from the main branch, the app deploys to the production environment.
+
+Job 1 – Testing the Codebase: The first job in the pipeline, Test, ensures the codebase is functional and error-free before proceeding with delivery or deployment
+
+Job 2 – Building and Deploying the Application: Aha! Moment ✨: These jobs run sequentially. 😃 The Build job begins only after the Test job is completed successfully. It prepares the application for deployment and manages the actual deployment process.
+
+Here's what happens:
+
+Authorization for GCP and Docker Hub: The workflow authenticates with both Google Cloud Platform (GCP) and Docker Hub. For GCP, it uses the google-github-actions/auth@v0 action to handle service account credentials stored as secrets. Similarly, it logs into Docker Hub with stored credentials to enable image uploads.
+
+Build and Push Docker Image: The application is built into a Docker image and tagged with a unique identifier (${{env.IMAGE}}). This image is then pushed to Docker Hub, making it accessible for deployment.
+
+Deploy to Google Cloud Run: Based on the event that triggered the workflow, the application is deployed to either the staging or production environment in Google Cloud Run. A push to the staging branch deploys to the staging environment (Continuous Delivery), while a release from the main branch deploys to production (Continuous Deployment).
+
+To ensure the security and flexibility of our pipeline, we rely on external variables and secrets rather than hardcoding sensitive information directly into the workflow file.
+
+Why? Workflow configuration files are part of your repository and accessible to anyone with access to the codebase. If sensitive data, like API keys or passwords, is exposed here, it can be easily compromised. 😨
+
+Instead, we use GitHub’s Secrets to securely store and access this information. Secrets allow us to define variables that are encrypted and only accessible by our workflows. For example:
+
+DockerHub Credentials: We’ll add a Docker username and access token to the repository’s secrets. These are essential for authenticating with DockerHub to upload the built Docker images.
+
+Google Cloud Service Account Key: This key will grant the pipeline the necessary permissions to deploy the application on Google Cloud Run securely.
+
+We'll set up these variables and secrets incrementally as we proceed, ensuring each step is fully secure and functional. 

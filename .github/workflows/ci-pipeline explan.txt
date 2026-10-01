@@ -1,0 +1,78 @@
+Explanation of the CI Workflow
+Here’s a breakdown of each section in the workflow:
+
+name: CI Pipeline to staging/production environment: This is the title of your workflow. It helps you identify this pipeline in GitHub Actions.
+
+on: The on parameter is what determines the events that trigger your workflow. When the workflow YAML file is pushed to the remote GitHub repository, GitHub Actions automatically registers the workflow using the configured triggers in the on field. These triggers act as event listeners that tell GitHub when to execute the workflow
+
+For example:
+
+If we set pull_request as the value for the on parameter and specify the branches we want to monitor using the branches key, GitHub sets up event listeners for pull requests to those branches.
+
+ on:
+   pull_request:
+     branches:
+       - main
+       - staging
+This configuration means that GitHub will trigger the workflow whenever a pull request is made to the main or staging branches.
+
+Multiple Triggers:
+You can define multiple event listeners in the on parameter. For instance, in addition to pull requests, you can add a listener for push events.
+
+ on:
+   pull_request:
+     branches:
+       - main
+       - staging
+   push:
+     branches:
+       - main
+This configuration ensures that the workflow is triggered when:
+
+A pull request is made to either the main or staging branch.
+
+A push is made directly to the main branch.
+
+📘 Learn more about triggers: Check out the official GitHub documentation here.
+
+jobs: The jobs section outlines the specific tasks (or jobs) that the workflow will execute. Each job is an independent unit of work that runs on a separate virtual machine (VM). This isolation ensures a clean, unique environment for every job, avoiding potential conflicts between tasks.
+
+Key Points About Jobs:
+
+Clean VM for Each Job: When GitHub Actions runs a workflow, it assigns a dedicated VM instance to each job. This means the environment is reset for every job, ensuring there’s no overlap or interference between tasks.
+
+Multiple Jobs: Workflows can have multiple jobs, each responsible for a specific task. For example:
+
+A Test job to install dependencies and run automated tests.
+
+A Build job to compile the application.
+
+Job Organization: Jobs can be organized to run:
+
+Sequentially: Ensures one job is completed before the next starts, for example the Test job must finish before the Build job. This sequential flow mimics the "pipeline" structure.
+
+Simultaneously: Multiple jobs can run in parallel to save time, especially if the jobs are independent of one another.
+
+Single Job in This Workflow: In our current workflow, there is only one job, test, which:
+
+Installs dependencies.
+
+Runs automated tests.
+
+Builds the application.
+
+📘 Learn more about jobs: Dive into the GitHub Actions jobs documentation here.
+
+runs-on: ubuntu-latest: Specifies the operating system the job will run on. GitHub provides pre-configured virtual environments, and we’re using the latest Ubuntu image.
+
+env: Sets environment variables for the job. Here, we define the PORT variable used by our application.
+
+Steps: Steps define the individual actions to execute within a job:
+
+Checkout: Uses the actions/checkout action to clone the repository containing the codebase in the feature branch into the virtual machine instance environment. This step ensures the pipeline has access to the project files.
+
+Install dependencies: Runs npm ci to install the required Node.js packages.
+
+Test application: Runs the automated tests using the npm test command. This validates the codebase for errors or failing test cases.
+
+Build application: Builds the application if a build script is defined in the package.json. The --if-present flag ensures this step doesn’t fail if no build script is present.
